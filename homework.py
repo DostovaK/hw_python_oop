@@ -91,7 +91,8 @@ class SportsWalking(Training):
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий при спортивной ходьбе."""
         return ((self.WLK_MULTIPLIER_COEF_1 * self.weight
-                + (self.get_mean_speed()**self.WLK_MULTIPLIER_COEF_2 // self.height)
+                + (self.get_mean_speed()**self.WLK_MULTIPLIER_COEF_2
+                // self.height)
                 * self.WLK_MULTIPLIER_COEF_3 * self.weight) * self.duration
                 * self.MINS_IN_HOUR)
 
@@ -113,7 +114,6 @@ class Swimming(Training):
         self.length_pool = length_pool
         self.count_pool = count_pool
 
-    #переопределяем метод из-за изменения LEN_STEP
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
         return self.action * self.LEN_STEP / Training.M_IN_KM
