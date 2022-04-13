@@ -130,9 +130,8 @@ def read_package(workout_type: str, data: List[int]) -> Training:
     sport: Dict[str, Type[Training]] = {SWM: Swimming,
                                         RUN: Running,
                                         WLK: SportsWalking}
-    for key in sport:
-        if key not in sport:
-            raise NameError('Sport type was not found')
+    if workout_type not in sport:
+        raise KeyError('Sport type was not found')
     return sport[workout_type](*data)
 
 
