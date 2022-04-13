@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from typing import Dict, List, Type
+from typing import ClassVar, Dict, List, Type
 
 SWM: str = 'SWM'
 RUN: str = 'RUN'
@@ -14,14 +14,14 @@ class InfoMessage:
     distance: float
     speed: float
     calories: float
-    message: str = ('Тип тренировки: {}; '
-                    'Длительность: {:.3f} ч.; '
-                    'Дистанция: {:.3f} км; '
-                    'Ср. скорость: {:.3f} км/ч; '
-                    'Потрачено ккал: {:.3f}.')
+    MESSAGE: ClassVar[str] = ('Тип тренировки: {training_type}; '
+                              'Длительность: {duration:.3f} ч.; '
+                              'Дистанция: {distance:.3f} км; '
+                              'Ср. скорость: {speed:.3f} км/ч; '
+                              'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
-        return self.message.format(*asdict(self).values())
+        return self.MESSAGE.format(**asdict(self))
 
 
 class Training:
@@ -62,22 +62,22 @@ class Training:
 
 class Running(Training):
     """Тренировка: бег."""
-    CAL_COEFF_1: int = 18
-    CAL_COEFF_2: int = 20
+    RUN_MULTIPLIER_COEF_1: int = 18
+    RUN_MULTIPLIER_COEF_2: int = 20
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий при беге."""
-        return ((self.CAL_COEFF_1 * self.get_mean_speed()
-                - self.CAL_COEFF_2)
+        return ((self.RUN_MULTIPLIER_COEF_1 * self.get_mean_speed()
+                - self.RUN_MULTIPLIER_COEF_2)
                 * self.weight / self.M_IN_KM
                 * self.duration * self.MINS_IN_HOUR)
 
 
 class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
-    CAL_COEFF_1: float = 0.035
-    CAL_COEFF_2: int = 2
-    CAL_COEFF_3: float = 0.029
+    WLK_MULTIPLIER_COEF_1: float = 0.035
+    WLK_MULTIPLIER_COEF_2: int = 2
+    WLK_MULTIPLIER_COEF_3: float = 0.029
 
     def __init__(self,
                  action: int,
@@ -90,17 +90,17 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий при спортивной ходьбе."""
-        return ((self.CAL_COEFF_1 * self.weight
-                + (self.get_mean_speed()**self.CAL_COEFF_2 // self.height)
-                * self.CAL_COEFF_3 * self.weight) * self.duration
+        return ((self.WLK_MULTIPLIER_COEF_1 * self.weight
+                + (self.get_mean_speed()**self.WLK_MULTIPLIER_COEF_2 // self.height)
+                * self.WLK_MULTIPLIER_COEF_3 * self.weight) * self.duration
                 * self.MINS_IN_HOUR)
 
 
 class Swimming(Training):
     """Тренировка: плавание."""
     LEN_STEP: float = 1.38
-    CAL_COEFF_1: float = 1.1
-    CAL_COEFF_2: float = 2
+    SWM_MULTIPLIER_COEF_1: float = 1.1
+    SWM_MULTIPLIER_COEF_2: int = 2
 
     def __init__(self,
                  action: int,
@@ -113,6 +113,7 @@ class Swimming(Training):
         self.length_pool = length_pool
         self.count_pool = count_pool
 
+    #переопределяем метод из-за изменения LEN_STEP
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
         return self.action * self.LEN_STEP / Training.M_IN_KM
@@ -124,8 +125,8 @@ class Swimming(Training):
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий при плавании."""
-        return ((self.get_mean_speed() + self.CAL_COEFF_1)
-                * self.CAL_COEFF_2 * self.weight)
+        return ((self.get_mean_speed() + self.SWM_MULTIPLIER_COEF_1)
+                * self.SWM_MULTIPLIER_COEF_2 * self.weight)
 
 
 def read_package(workout_type: str, data: List[int]) -> Training:
@@ -133,6 +134,9 @@ def read_package(workout_type: str, data: List[int]) -> Training:
     sport: Dict[str, Type[Training]] = {SWM: Swimming,
                                         RUN: Running,
                                         WLK: SportsWalking}
+    for key in sport:
+        if key not in sport:
+            raise NameError('Sport type was not found')
     return sport[workout_type](*data)
 
 
